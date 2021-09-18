@@ -269,8 +269,8 @@ public class UniformBaker : MonoBehaviour
     {
         var vfx = GetComponent<VisualEffect>();
 
-        m_Buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 1024, Marshal.SizeOf(typeof(TriangleSampling)));
-        var fakeData = Enumerable.Range(0, 1024).Select(o => new TriangleSampling { index = (uint)o * 32 }).ToArray();
+        m_Buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, 2048, Marshal.SizeOf(typeof(TriangleSampling)));
+        var fakeData = Enumerable.Range(0, 2048).Select(o => new TriangleSampling { index = (uint)o * 32 }).ToArray();
         m_Buffer.SetData(fakeData);
 
         var skinnedMesh = vfx.GetSkinnedMeshRenderer(s_SkinnedMeshID);
@@ -279,7 +279,7 @@ public class UniformBaker : MonoBehaviour
         var picker = new RandomPickerUniformArea(meshCache, 0x123);
 
         var uniformBakedData = new List<TriangleSampling>();
-        for (int i = 0; i < 1024; ++i)
+        for (int i = 0; i < 2048; ++i)
         {
             uniformBakedData.Add(picker.GetNext());
         }
@@ -288,8 +288,8 @@ public class UniformBaker : MonoBehaviour
         {
             var refPosition = new[]
             {
-                new Vector3(2, 0, 0),
-                new Vector3(-2, 0, 0),
+                new Vector3(200, 0, 0),
+                new Vector3(-200, 0, 0),
             };
 
             uniformBakedData = uniformBakedData.OrderBy(o =>

@@ -190,7 +190,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 512
+      m_SerializableObject: 1024
     m_Space: 2147483647
   m_Property:
     name: Rate
@@ -561,7 +561,7 @@ MonoBehaviour:
   - {fileID: 8926484042661614769}
   - {fileID: 8926484042661614726}
   dataType: 0
-  capacity: 1024
+  capacity: 2048
   stripCapacity: 16
   particlePerStripCount: 16
   needsComputeBounds: 0
@@ -3785,7 +3785,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 0.035
+      m_SerializableObject: 0.015
     m_Space: 2147483647
   m_Property:
     name: Size
@@ -3904,7 +3904,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 3
+      m_SerializableObject: 15
     m_Space: 2147483647
   m_Property:
     name: Lifetime
@@ -3938,7 +3938,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 2
+      m_SerializableObject: 15
     m_Space: 2147483647
   m_Property:
     name: LoopDuration
@@ -3972,7 +3972,7 @@ MonoBehaviour:
       m_Type:
         m_SerializableType: System.Single, mscorlib, Version=4.0.0.0, Culture=neutral,
           PublicKeyToken=b77a5c561934e089
-      m_SerializableObject: 3
+      m_SerializableObject: 5
     m_Space: 2147483647
   m_Property:
     name: DelayAfterLoop
