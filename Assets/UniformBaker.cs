@@ -74,6 +74,64 @@ public class UniformBaker : MonoBehaviour
 
         public Vertex[] vertices;
         public Triangle[] triangles;
+        public double[] accumulatedTriangleArea;
+    }
+
+    static private double ComputeTriangleArea(MeshData meshData, int triangleIndex)
+    {
+        var t = meshData.triangles[triangleIndex];
+        var A = meshData.vertices[t.a].position;
+        var B = meshData.vertices[t.b].position;
+        var C = meshData.vertices[t.c].position;
+        return 0.5f * Vector3.Cross(B - A, C - A).magnitude;
+    }
+
+    static private uint FindIndexOfArea(MeshData meshData, double area)
+    {
+        uint min = 0;
+        uint max = (uint)meshData.accumulatedTriangleArea.Length - 1;
+        uint mid = max >> 1;
+        while (max >= min)
+        {
+            if (mid > meshData.accumulatedTriangleArea.Length)
+                throw new InvalidOperationException("Cannot Find FindIndexOfArea");
+
+            if (meshData.accumulatedTriangleArea[mid] >= area &&
+                (mid == 0 || (meshData.accumulatedTriangleArea[mid - 1] < area)))
+            {
+                return mid;
+            }
+            else if (area < meshData.accumulatedTriangleArea[mid])
+            {
+                max = mid - 1;
+            }
+            else
+            {
+                min = mid + 1;
+            }
+            mid = (min + max) >> 1;
+        }
+        throw new InvalidOperationException("Cannot FindIndexOfArea");
+    }
+
+    static MeshData.Vertex GetInterpolatedVertex(MeshData meshData, TriangleSampling sampling)
+    {
+        var triangle = meshData.triangles[sampling.index];
+        var u = sampling.coord.x;
+        var v = sampling.coord.y;
+        var w = 1.0f - u - v;
+
+        var A = meshData.vertices[triangle.a];
+        var B = meshData.vertices[triangle.b];
+        var C = meshData.vertices[triangle.c];
+
+        var r = u * A + v * B + w * C;
+
+        r.normal = r.normal.normalized;
+        var tangent = new Vector3(r.tangent.x, r.tangent.y, r.tangent.z).normalized;
+        r.tangent = new Vector4(tangent.x, tangent.y, tangent.z, r.tangent.w > 0.0f ? 1.0f : -1.0f);
+
+        return r;
     }
 
     static MeshData ComputeDataCache(Mesh input)
@@ -93,13 +151,9 @@ public class UniformBaker : MonoBehaviour
             var uv = new List<Vector4>();
             input.GetUVs(i, uv);
             if (uv.Count == input.vertexCount)
-            {
                 uvs.Add(uv.ToArray());
-            }
             else
-            {
                 break;
-            }
         }
 
         var meshData = new MeshData();
@@ -127,6 +181,21 @@ public class UniformBaker : MonoBehaviour
                 c = triangles[i * 3 + 2],
             };
         }
+
+        if (meshData.triangles.Length >= 1)
+        {
+            meshData.accumulatedTriangleArea = new double[meshData.triangles.Length];
+            meshData.accumulatedTriangleArea[0] = ComputeTriangleArea(meshData, 0);
+            for (int i = 1; i < meshData.triangles.Length; ++i)
+            {
+                meshData.accumulatedTriangleArea[i] = meshData.accumulatedTriangleArea[i - 1] + ComputeTriangleArea(meshData, i);
+            }
+        }
+        else
+        {
+            meshData.accumulatedTriangleArea = new double[0];
+        }
+
         return meshData;
     }
 
@@ -137,28 +206,6 @@ public class UniformBaker : MonoBehaviour
         protected Picker(MeshData data)
         {
             m_cacheData = data;
-        }
-
-        //See http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf (p24) uniform distribution from two numbers in triangle generating barycentric coordinate
-        protected readonly static Vector2 center_of_sampling = new Vector2(4.0f / 9.0f, 3.0f / 4.0f);
-        protected MeshData.Vertex Interpolate(MeshData.Triangle triangle, Vector2 p)
-        {
-            return Interpolate(m_cacheData.vertices[triangle.a], m_cacheData.vertices[triangle.b], m_cacheData.vertices[triangle.c], p);
-        }
-
-        protected static MeshData.Vertex Interpolate(MeshData.Vertex A, MeshData.Vertex B, MeshData.Vertex C, Vector2 p)
-        {
-            float s = p.x;
-            float t = Mathf.Sqrt(p.y);
-            float a = 1.0f - t;
-            float b = (1 - s) * t;
-            float c = s * t;
-
-            var r = a * A + b * B + c * C;
-            r.normal = r.normal.normalized;
-            var tangent = new Vector3(r.tangent.x, r.tangent.y, r.tangent.z).normalized;
-            r.tangent = new Vector4(tangent.x, tangent.y, tangent.z, r.tangent.w > 0.0f ? 1.0f : -1.0f);
-            return r;
         }
 
         protected MeshData m_cacheData;
@@ -181,86 +228,33 @@ public class UniformBaker : MonoBehaviour
 
     class RandomPickerUniformArea : RandomPicker
     {
-        private double[] m_accumulatedAreaTriangles;
-
-        private double ComputeTriangleArea(MeshData.Triangle t)
-        {
-            var A = m_cacheData.vertices[t.a].position;
-            var B = m_cacheData.vertices[t.b].position;
-            var C = m_cacheData.vertices[t.c].position;
-            return 0.5f * Vector3.Cross(B - A, C - A).magnitude;
-        }
-
         public RandomPickerUniformArea(MeshData data, int seed) : base(data, seed)
         {
-            m_accumulatedAreaTriangles = new double[data.triangles.Length];
-            m_accumulatedAreaTriangles[0] = ComputeTriangleArea(data.triangles[0]);
-            for (int i = 1; i < data.triangles.Length; ++i)
-            {
-                m_accumulatedAreaTriangles[i] = m_accumulatedAreaTriangles[i - 1] + ComputeTriangleArea(data.triangles[i]);
-            }
-        }
 
-        private uint FindIndexOfArea(double area)
-        {
-            uint min = 0;
-            uint max = (uint)m_accumulatedAreaTriangles.Length - 1;
-            uint mid = max >> 1;
-            while (max >= min)
-            {
-                if (mid > m_accumulatedAreaTriangles.Length)
-                    throw new InvalidOperationException("Cannot Find FindIndexOfArea");
-
-                if (m_accumulatedAreaTriangles[mid] >= area &&
-                    (mid == 0 || (m_accumulatedAreaTriangles[mid - 1] < area)))
-                {
-                    return mid;
-                }
-                else if (area < m_accumulatedAreaTriangles[mid])
-                {
-                    max = mid - 1;
-                }
-                else
-                {
-                    min = mid + 1;
-                }
-                mid = (min + max) >> 1;
-            }
-            throw new InvalidOperationException("Cannot FindIndexOfArea");
         }
 
         public override sealed TriangleSampling GetNext()
         {
-            var areaPosition = m_Rand.NextDouble() * m_accumulatedAreaTriangles.Last();
-            uint areaIndex = FindIndexOfArea(areaPosition);
+            var areaPosition = m_Rand.NextDouble() * m_cacheData.accumulatedTriangleArea.Last();
+            uint areaIndex = FindIndexOfArea(m_cacheData, areaPosition);
 
             var rand = new Vector2(GetNextRandFloat(), GetNextRandFloat());
 
+            //http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf
+            //p24 uniform distribution from two numbers in triangle generating barycentric coordinate
+            //Alternatively, we can use "A Low-Distortion Map Between Triangle and Square" https://hal.archives-ouvertes.fr/hal-02073696v1/document
             float s = rand.x;
             float t = Mathf.Sqrt(rand.y);
-            float a = 1.0f - t;
-            float b = (1 - s) * t;
-            float c = s * t;
+            float u = 1.0f - t;
+            float v = (1 - s) * t;
+            float w = s * t;
 
             return new TriangleSampling
             {
-                coord = new Vector2(a, b),
+                coord = new Vector2(u, v),
                 index = areaIndex
             };
-
-            //return Interpolate(m_cacheData.triangles[areaIndex], rand);
         }
-    }
-
-    static MeshData.Vertex GetInterpolatedVertex(MeshData meshData, TriangleSampling sampling)
-    {
-        var triangle = meshData.triangles[sampling.index];
-
-        var w = 1.0f - sampling.coord.x - sampling.coord.y;
-        var r = sampling.coord.x * meshData.vertices[triangle.a]
-            + sampling.coord.y * meshData.vertices[triangle.b] 
-            + w * meshData.vertices[triangle.b];
-        return r;
     }
 
     public bool m_CustomOrdering;
