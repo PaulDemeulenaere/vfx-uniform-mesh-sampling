@@ -114,6 +114,29 @@ public class UniformBaker : MonoBehaviour
         throw new InvalidOperationException("Cannot FindIndexOfArea");
     }
 
+    static TriangleSampling GetNextSampling(MeshData meshData, System.Random rand)
+    {
+        var areaPosition = rand.NextDouble() * meshData.accumulatedTriangleArea.Last();
+        uint areaIndex = FindIndexOfArea(meshData, areaPosition);
+
+        var randUV = new Vector2((float)rand.NextDouble(), (float)rand.NextDouble());
+
+        //http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf
+        //p24 uniform distribution from two numbers in triangle generating barycentric coordinate
+        //Alternatively, we can use "A Low-Distortion Map Between Triangle and Square" https://hal.archives-ouvertes.fr/hal-02073696v1/document
+        float s = randUV.x;
+        float t = Mathf.Sqrt(randUV.y);
+        float u = 1.0f - t;
+        float v = (1 - s) * t;
+        float w = s * t;
+
+        return new TriangleSampling
+        {
+            coord = new Vector2(u, v),
+            index = areaIndex
+        };
+    }
+
     static MeshData.Vertex GetInterpolatedVertex(MeshData meshData, TriangleSampling sampling)
     {
         var triangle = meshData.triangles[sampling.index];
@@ -199,64 +222,6 @@ public class UniformBaker : MonoBehaviour
         return meshData;
     }
 
-    abstract class Picker
-    {
-        public abstract TriangleSampling GetNext();
-
-        protected Picker(MeshData data)
-        {
-            m_cacheData = data;
-        }
-
-        protected MeshData m_cacheData;
-    }
-
-    abstract class RandomPicker : Picker
-    {
-        protected RandomPicker(MeshData data, int seed) : base(data)
-        {
-            m_Rand = new System.Random(seed);
-        }
-
-        protected float GetNextRandFloat()
-        {
-            return (float)m_Rand.NextDouble(); //[0; 1[
-        }
-
-        protected System.Random m_Rand;
-    }
-
-    class RandomPickerUniformArea : RandomPicker
-    {
-        public RandomPickerUniformArea(MeshData data, int seed) : base(data, seed)
-        {
-
-        }
-
-        public override sealed TriangleSampling GetNext()
-        {
-            var areaPosition = m_Rand.NextDouble() * m_cacheData.accumulatedTriangleArea.Last();
-            uint areaIndex = FindIndexOfArea(m_cacheData, areaPosition);
-
-            var rand = new Vector2(GetNextRandFloat(), GetNextRandFloat());
-
-            //http://inis.jinr.ru/sl/vol1/CMC/Graphics_Gems_1,ed_A.Glassner.pdf
-            //p24 uniform distribution from two numbers in triangle generating barycentric coordinate
-            //Alternatively, we can use "A Low-Distortion Map Between Triangle and Square" https://hal.archives-ouvertes.fr/hal-02073696v1/document
-            float s = rand.x;
-            float t = Mathf.Sqrt(rand.y);
-            float u = 1.0f - t;
-            float v = (1 - s) * t;
-            float w = s * t;
-
-            return new TriangleSampling
-            {
-                coord = new Vector2(u, v),
-                index = areaIndex
-            };
-        }
-    }
-
     public bool m_CustomOrdering;
 
     void Start()
@@ -269,13 +234,13 @@ public class UniformBaker : MonoBehaviour
 
         var skinnedMesh = vfx.GetSkinnedMeshRenderer(s_SkinnedMeshID);
 
-        var meshCache = ComputeDataCache(skinnedMesh.sharedMesh);
-        var picker = new RandomPickerUniformArea(meshCache, 0x123);
+        var meshData = ComputeDataCache(skinnedMesh.sharedMesh);
 
+        var rand = new System.Random(0x123);
         var uniformBakedData = new List<TriangleSampling>();
         for (int i = 0; i < 2048; ++i)
         {
-            uniformBakedData.Add(picker.GetNext());
+            uniformBakedData.Add(GetNextSampling(meshData, rand));
         }
 
         if (m_CustomOrdering)
@@ -284,12 +249,30 @@ public class UniformBaker : MonoBehaviour
             {
                 new Vector3(200, 0, 0),
                 new Vector3(-200, 0, 0),
+                new Vector3(0, 200, 0),
+                new Vector3(0, -200, 0),
             };
+
+            var boundVertices = new Vector3[refPosition.Length];
+            for (int i = 0; i < refPosition.Length; ++i)
+            {
+                var position = refPosition[i];
+                var currentMinLength = float.MaxValue;
+                foreach (var v in meshData.vertices)
+                {
+                    var currentLength = (v.position - position).sqrMagnitude;
+                    if (currentLength < currentMinLength)
+                    {
+                        currentMinLength = currentLength;
+                        boundVertices[i] = v.position;
+                    }
+                }
+            }
 
             uniformBakedData = uniformBakedData.OrderBy(o =>
             {
-                var vertex = GetInterpolatedVertex(meshCache, o);
-                return refPosition.Select(p => (vertex.position - p).sqrMagnitude).Min();
+                var vertex = GetInterpolatedVertex(meshData, o);
+                return boundVertices.Select(p => (vertex.position - p).sqrMagnitude).Min();
             }).ToList();
         }
 
