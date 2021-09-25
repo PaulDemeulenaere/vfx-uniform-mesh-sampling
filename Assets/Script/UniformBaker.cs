@@ -42,7 +42,7 @@ namespace UnityEngine.VFX
                 return;
             }
 
-            Mesh mesh = null;
+            Mesh mesh;
             var meshPropertyNameID = Shader.PropertyToID(MeshPropertyName);
             if (vfx.HasSkinnedMeshRenderer(meshPropertyNameID))
             {
