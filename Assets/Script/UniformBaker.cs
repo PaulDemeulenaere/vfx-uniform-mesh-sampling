@@ -11,14 +11,9 @@ namespace UnityEngine.VFX
     [ExecuteInEditMode]
     public class UniformBaker : MonoBehaviour
     {
-        private static readonly int s_BufferID = Shader.PropertyToID("bakedSampling");
-        private static readonly int s_SkinnedMeshID = Shader.PropertyToID("skinnedMeshRenderer");
-
-        private GraphicsBuffer m_Buffer;
-
         [Delayed]
         public int Seed = 0x123;
-        [Delayed, Min(1)]
+        [Min(1)]
         public int SampleCount = 2048;
         [Delayed]
         public string MeshPropertyName = "skinnedMeshRenderer";
@@ -28,7 +23,9 @@ namespace UnityEngine.VFX
         [SerializeField]
         TriangleSampling[] m_BakedSampling;
 
-//ComputeBakedSampling could be executed in runtime but this computation isn't optimized for runtime
+        private GraphicsBuffer m_Buffer;
+
+        //ComputeBakedSampling could be executed in runtime but this computation isn't optimized for runtime
 #if UNITY_EDITOR
         public void ComputeBakedSampling()
         {
@@ -90,7 +87,8 @@ namespace UnityEngine.VFX
             {
                 ComputeBakedSampling();
             }
-            else if (m_Buffer == null || m_Buffer.count != SampleCount)
+
+            if (m_Buffer == null || m_Buffer.count != SampleCount)
             {
                 UpdateGraphicsBuffer();
             }
@@ -103,6 +101,12 @@ namespace UnityEngine.VFX
             {
                 Debug.LogErrorFormat("The length of baked data mismatches with sample count : {0} vs {1}", SampleCount, m_BakedSampling.Length);
                 return;
+            }
+
+            if (m_Buffer != null)
+            {
+                m_Buffer.Release();
+                m_Buffer = null;
             }
 
             m_Buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, SampleCount, Marshal.SizeOf(typeof(TriangleSampling)));
