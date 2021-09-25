@@ -8,6 +8,7 @@ using System;
 
 namespace UnityEngine.VFX
 {
+    [ExecuteInEditMode]
     public class UniformBaker : MonoBehaviour
     {
         private static readonly int s_BufferID = Shader.PropertyToID("bakedSampling");
@@ -75,8 +76,6 @@ namespace UnityEngine.VFX
                 m_BakedSampling[i] = VFXMeshSamplingHelper.GetNextSampling(meshData, rand);
             }
             ApplyCustomOrdering(meshData, ref m_BakedSampling);
-
-            UpdateAndBindGraphisBuffer(vfx);
         }
 
         public virtual void ApplyCustomOrdering(MeshData meshData, ref TriangleSampling[] bakedSampling)
@@ -85,25 +84,21 @@ namespace UnityEngine.VFX
 
         public void OnValidate()
         {
-            //TODO: Use better UX than invalidate which can be called several time
-            //ComputeBakedSampling();
+            //Lazy update & bind only for editor
+            var vfx = GetComponent<VisualEffect>();
+            if (m_BakedSampling == null || m_BakedSampling.Length != SampleCount)
+            {
+                ComputeBakedSampling();
+            }
+            else if (m_Buffer == null || m_Buffer.count != SampleCount)
+            {
+                UpdateGraphicsBuffer();
+            }
+            BindGraphicsBuffer(vfx);
         }
 #endif
-
-        public void UpdateAndBindGraphisBuffer(VisualEffect vfx)
+        public void UpdateGraphicsBuffer()
         {
-            if (m_Buffer != null)
-            {
-                m_Buffer.Release();
-                m_Buffer = null;
-            }
-
-            if (m_BakedSampling == null)
-            {
-                Debug.LogError("Unexpected null baked sampling.");
-                return;
-            }
-
             if (SampleCount != m_BakedSampling.Length)
             {
                 Debug.LogErrorFormat("The length of baked data mismatches with sample count : {0} vs {1}", SampleCount, m_BakedSampling.Length);
@@ -112,13 +107,18 @@ namespace UnityEngine.VFX
 
             m_Buffer = new GraphicsBuffer(GraphicsBuffer.Target.Structured, SampleCount, Marshal.SizeOf(typeof(TriangleSampling)));
             m_Buffer.SetData(m_BakedSampling);
+        }
+
+        public void BindGraphicsBuffer(VisualEffect vfx)
+        {
             vfx.SetGraphicsBuffer(GraphicsBufferName, m_Buffer);
         }
 
         public void Start()
         {
             var vfx = GetComponent<VisualEffect>();
-            UpdateAndBindGraphisBuffer(vfx);
+            UpdateGraphicsBuffer();
+            BindGraphicsBuffer(vfx);
 #if !UNITY_EDITOR
             //Optional: In runtime, we can now free the serialized data
             m_BakedSampling = null;

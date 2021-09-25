@@ -1,6 +1,7 @@
 using System.Linq;
 namespace UnityEngine.VFX
 {
+    [ExecuteInEditMode]
     public class UniformBakerCustomOrder : UniformBaker
     {
 #if UNITY_EDITOR
