@@ -20,7 +20,7 @@ namespace UnityEngine.VFX
         [Delayed]
         public string GraphicsBufferName = "bakedSampling";
 
-        [SerializeField]
+        [SerializeField, HideInInspector]
         TriangleSampling[] m_BakedSampling;
 
         private GraphicsBuffer m_Buffer;
