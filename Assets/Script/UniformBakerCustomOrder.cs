@@ -15,7 +15,7 @@ namespace UnityEngine.VFX
                 var texCoord = vertex.uvs[0];
                 return (texCoord - new Vector4(0.5f, 0.5f, 0.5f, 0.5f)).magnitude;
 
-                //Alternative
+                //Alternative:
                 //var sampledColor = m_OrderTexture.GetPixelBilinear(texCoord.x, texCoord.y);
                 //return sampledColor.r;
             }).ToArray();

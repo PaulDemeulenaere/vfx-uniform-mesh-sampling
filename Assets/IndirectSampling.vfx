@@ -17,9 +17,9 @@ MonoBehaviour:
   categories: []
   uiBounds:
     serializedVersion: 2
-    x: -152
+    x: 20
     y: -297
-    width: 1517
+    width: 1345
     height: 1587
 --- !u!114 &114350483966674976
 MonoBehaviour:
@@ -612,7 +612,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 499, y: 646}
+  m_UIPosition: {x: 576, y: 647}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -1183,7 +1183,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661614666}
       inputSlot: {fileID: 8926484042661614646}
-    position: {x: 51, y: 612}
+    position: {x: 252, y: 572}
     expandedSlots: []
     expanded: 0
 --- !u!114 &8926484042661614666
@@ -1271,7 +1271,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 576, y: 868}
+  m_UIPosition: {x: 653, y: 876}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2411,7 +2411,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 161, y: 699}
+  m_UIPosition: {x: 307, y: 683}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots:
@@ -2508,7 +2508,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: -152, y: 749}
+  m_UIPosition: {x: 20, y: 748}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
@@ -2594,7 +2594,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661614785}
       inputSlot: {fileID: 8926484042661614776}
-    position: {x: -123, y: 674}
+    position: {x: 49, y: 673}
     expandedSlots: []
     expanded: 0
 --- !u!114 &8926484042661614785
@@ -2777,7 +2777,7 @@ MonoBehaviour:
     linkedSlots:
     - outputSlot: {fileID: 8926484042661614809}
       inputSlot: {fileID: 8926484042661614760}
-    position: {x: 639, y: 1082}
+    position: {x: 775, y: 1030}
     expandedSlots: []
     expanded: 0
 --- !u!114 &8926484042661614809
