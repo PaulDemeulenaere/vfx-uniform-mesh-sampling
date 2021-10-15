@@ -3104,7 +3104,7 @@ MonoBehaviour:
   m_UIIgnoredErrors: []
   m_Parent: {fileID: 114350483966674976}
   m_Children: []
-  m_UIPosition: {x: 928, y: 347}
+  m_UIPosition: {x: 941, y: 364}
   m_UICollapsed: 0
   m_UISuperCollapsed: 0
   m_InputSlots: []
