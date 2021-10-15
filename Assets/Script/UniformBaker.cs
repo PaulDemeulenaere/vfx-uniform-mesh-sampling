@@ -79,19 +79,11 @@ namespace UnityEngine.VFX
         {
         }
 
-        public void OnValidate()
+        public void Bake()
         {
-            //Lazy update & bind only for editor
             var vfx = GetComponent<VisualEffect>();
-            if (m_BakedSampling == null || m_BakedSampling.Length != SampleCount)
-            {
-                ComputeBakedSampling();
-            }
-
-            if (m_Buffer == null || m_Buffer.count != SampleCount)
-            {
-                UpdateGraphicsBuffer();
-            }
+            ComputeBakedSampling();
+            UpdateGraphicsBuffer();
             BindGraphicsBuffer(vfx);
         }
 #endif
