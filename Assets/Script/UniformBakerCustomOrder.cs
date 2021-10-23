@@ -13,7 +13,7 @@ namespace UnityEngine.VFX
             {
                 var vertex = VFXMeshSamplingHelper.GetInterpolatedVertex(meshData, o);
                 var texCoord = vertex.uvs[0];
-                return (texCoord - new Vector4(0.5f, 0.5f, 0.5f, 0.5f)).magnitude;
+                return (texCoord - new Vector4(0.5f, 0.5f, 0.5f, 0.5f)).sqrMagnitude;
 
                 //Alternative:
                 //var sampledColor = m_OrderTexture.GetPixelBilinear(texCoord.x, texCoord.y);
