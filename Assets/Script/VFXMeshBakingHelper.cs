@@ -82,6 +82,9 @@ namespace UnityEngine.VFX
 
     static class VFXMeshSamplingHelper
     {
+        /// <summary>
+        /// Extract and compute the accumulative sum of triangle area needed for uniform sampling
+        /// </summary>
         public static MeshData ComputeDataCache(Mesh input)
         {
             var positions = input.vertices;
@@ -147,6 +150,9 @@ namespace UnityEngine.VFX
             return meshData;
         }
 
+        /// <summary>
+        /// Compute interpolated vertices with triangle index and barycentric coordinates
+        /// </summary>
         public static MeshData.Vertex GetInterpolatedVertex(MeshData meshData, TriangleSampling sampling)
         {
             var triangle = meshData.triangles[sampling.index];
@@ -167,6 +173,9 @@ namespace UnityEngine.VFX
             return r;
         }
 
+        /// <summary>
+        /// Return a new uniform sampled position using the accumulated triangle area
+        /// </summary>
         public static TriangleSampling GetNextSampling(MeshData meshData, System.Random rand)
         {
             var areaPosition = rand.NextDouble() * meshData.accumulatedTriangleArea.Last();
@@ -181,7 +190,7 @@ namespace UnityEngine.VFX
             float t = Mathf.Sqrt(randUV.y);
             float u = 1.0f - t;
             float v = (1 - s) * t;
-            float w = s * t;
+            float w = s * t; //Not stored, recomputed using 1 - u - v
 
             return new TriangleSampling
             {
